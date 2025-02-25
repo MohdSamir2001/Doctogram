@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./src/config/database");
 const connectCloudinary = require("./src/config/cloudinary");
+const adminRouter = require("./src/routes/adminRoute");
 require("dotenv").config();
 // App Config
 const app = express();
@@ -9,6 +10,9 @@ const port = process.env.PORT || 1234;
 // Middlewares
 app.use(express.json());
 app.use(cors());
+// API EndPoints
+app.use("/api/admin", adminRouter);
+// localhost:1234/api/admin/add-doctor
 app.get("/", (req, res) => {
   res.send("API Working");
 });
