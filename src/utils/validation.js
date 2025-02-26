@@ -14,23 +14,22 @@ const validateAddDoctorDetails = (req) => {
     date,
     slots_booked,
   } = req.body;
-  const imageFile = req.file;
+
   const requredFields = {
     name,
     email,
     password,
-    image,
     speciality,
     degree,
     experience,
     about,
-    available,
     fees,
     address,
-    date,
-    slots_booked,
-    imageFile,
   };
+  // date,
+  // slots_booked,
+  // available,
+  // image,
   const missingFields = Object.entries(requredFields).filter(
     ([key, value]) => !value
   );

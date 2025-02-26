@@ -1,7 +1,9 @@
 const validateAddDoctorDetails = require("../utils/validation");
 const bcrypt = require("bcrypt");
 const cloudinary = require("cloudinary");
+const jwt = require("jsonwebtoken");
 const Doctor = require("../models/doctorModel");
+const validator = require("validator");
 // API For Adding Doctor
 const addDoctor = async (req, res) => {
   try {
@@ -20,10 +22,14 @@ const addDoctor = async (req, res) => {
       date,
       slots_booked,
     } = req.body;
+    const imageFile = req.file;
+    if (!imageFile) throw new Error("Missing Image");
+    console.log(req.file);
     const isAllFieldsPresent = validateAddDoctorDetails(req);
     if (isAllFieldsPresent.length > 0) {
       return res.json({ success: false, message: "Missing Details" });
     }
+    console.log(isAllFieldsPresent);
     if (!validator.isEmail(email)) {
       return res.json({
         success: false,
@@ -42,7 +48,8 @@ const addDoctor = async (req, res) => {
       resource_type: "image",
     });
     const imageUrl = imageUpload.secure_url;
-    const finalDoctorData = {
+    console.log(imageUrl);
+    const finalDoctorDataForAddingDoctor = {
       name,
       email,
       password: hashedPassword,
@@ -55,7 +62,7 @@ const addDoctor = async (req, res) => {
       address: JSON.parse(address),
       date: Date.now(),
     };
-    const newDoctor = new Doctor(finalDoctorData);
+    const newDoctor = new Doctor(finalDoctorDataForAddingDoctor);
     await newDoctor.save();
     res.json({
       success: true,
@@ -65,4 +72,24 @@ const addDoctor = async (req, res) => {
     res.status(400).send("ERROR : " + err.message);
   }
 };
-module.exports = addDoctor;
+
+// API For Admin Login
+const loginAdmin = async (req, res) => {
+  const { email, password } = req.body;
+  console.log(email);
+  if (
+    email === process.env.ADMIN_EMAIL &&
+    password === process.env.ADMIN_PASSWORD
+  ) {
+    const token = jwt.sign(email + password, process.env.JWT_SECRET);
+    res.json({ success: true, token });
+  } else {
+    res.status(401).json({ success: false, message: "Invalid credentials" });
+  }
+  try {
+  } catch (err) {
+    res.status(400).send("ERROR : " + err.message);
+  }
+};
+
+module.exports = { addDoctor, loginAdmin };
