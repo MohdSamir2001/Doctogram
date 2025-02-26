@@ -72,7 +72,6 @@ const addDoctor = async (req, res) => {
     res.status(400).send("ERROR : " + err.message);
   }
 };
-
 // API For Admin Login
 const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
@@ -81,8 +80,10 @@ const loginAdmin = async (req, res) => {
     email === process.env.ADMIN_EMAIL &&
     password === process.env.ADMIN_PASSWORD
   ) {
-    const token = jwt.sign(email + password, process.env.JWT_SECRET);
-    res.json({ success: true, token });
+    const token = await jwt.sign(email, process.env.JWT_SECRET);
+    // token saved in the cookie of browser
+    res.cookie("adminToken", token);
+    res.json({ success: true, message: "Logged in successfully" });
   } else {
     res.status(401).json({ success: false, message: "Invalid credentials" });
   }
