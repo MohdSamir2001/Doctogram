@@ -4,6 +4,8 @@ const connectDB = require("./src/config/database");
 const connectCloudinary = require("./src/config/cloudinary");
 const adminRouter = require("./src/routes/adminRoute");
 const cookieParser = require("cookie-parser");
+
+const userRouter = require("./src/routes/userRoute");
 require("dotenv").config();
 // App Config
 const app = express();
@@ -14,6 +16,7 @@ app.use(cors());
 app.use(cookieParser());
 // API EndPoints
 app.use("/api/admin", adminRouter);
+app.use("/api/user/", userRouter);
 // localhost:1234/api/admin/add-doctor
 app.get("/", (req, res) => {
   res.send("API Working");
