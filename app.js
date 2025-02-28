@@ -7,7 +7,9 @@ const app = express();
 // App Config
 const port = process.env.PORT || 1234;
 // Middlewares
+// Middleware to parse JSON and form data
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(cookieParser());
 require("dotenv").config();
