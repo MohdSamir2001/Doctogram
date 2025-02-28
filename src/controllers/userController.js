@@ -52,10 +52,18 @@ const loginUser = async (req, res) => {
         process.env.JWT_SECRET
       );
       res.cookie("userToken", token);
-      res.json({ success: true, message: "Logged In Successfully" });
+      res.json({ success: true, message: "Logged In Successfully", token });
     }
   } catch (err) {
     res.status(400).send("ERROR : " + err.message);
   }
 };
-module.exports = { registerUser, loginUser };
+const viewProfile = async (req, res) => {
+  try {
+    const { userData } = req.body;
+    return res.json({ success: true, data: userData });
+  } catch (err) {
+    res.status(401).send("ERROR : " + err.message);
+  }
+};
+module.exports = { registerUser, loginUser, viewProfile };

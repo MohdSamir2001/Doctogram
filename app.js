@@ -4,9 +4,6 @@ const connectDB = require("./src/config/database");
 const connectCloudinary = require("./src/config/cloudinary");
 const cookieParser = require("cookie-parser");
 const app = express();
-const adminRouter = require("./src/routes/adminRoute");
-const userRouter = require("./src/routes/userRoute");
-const doctorRouter = require("./src/routes/doctorRoute");
 // App Config
 const port = process.env.PORT || 1234;
 // Middlewares
@@ -14,6 +11,10 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 require("dotenv").config();
+
+const adminRouter = require("./src/routes/adminRoute");
+const userRouter = require("./src/routes/userRoute");
+const doctorRouter = require("./src/routes/doctorRoute");
 // API EndPoints
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor/", doctorRouter);
