@@ -2,6 +2,8 @@ const validator = require("validator");
 const bcrypt = require("bcrypt");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
+const Doctor = require("../models/doctorModel");
+const Appointment = require("../models/appointmentModel");
 const cloudinary = require("cloudinary").v2;
 // API to register user
 const registerUser = async (req, res) => {
@@ -102,4 +104,52 @@ const updateUserProfile = async (req, res) => {
     res.status(401).send("ERROR : " + err.message);
   }
 };
-module.exports = { registerUser, loginUser, viewProfile, updateUserProfile };
+const bookAppointment = async (req, res) => {
+  try {
+    const { userId, doctorId, slotDate, slotTime } = req.body;
+    const doctorData = await Doctor.findById(doctorId)
+      .select("-password")
+      .lean();
+    if (!doctorData.avaliable) {
+      return res.json({ success: false, message: "Doctor not available" });
+    }
+    let slots_booked = doctorData.slots_booked;
+    // Checking for slots availability
+    if (slots_booked[slotDate]) {
+      if (slots_booked[slotDate].includes(slotTime)) {
+        return res.json({ success: false, message: "Slot is not available" });
+      } else {
+        slots_booked[slotDate].push(slotTime);
+      }
+    } else {
+      slots_booked[slotDate] = [];
+      slots_booked[slotDate].push(slotTime);
+    }
+    const userData = await User.findById(userId).select("-password");
+    delete doctorData.slots_booked;
+    const appointmentData = {
+      userId,
+      doctorId,
+      userData,
+      doctorData,
+      amount: doctorData.fees,
+      slotDate,
+      slotTime,
+      date: Date.now(),
+    };
+    const newAppointment = new Appointment(appointmentData);
+    await newAppointment.save();
+    // Save new slots data in doctorData
+    await Doctor.findByIdAndUpdate(doctorId, { slots_booked });
+    res.json({ success: true, message: "Appointment Booked Successfully" });
+  } catch (err) {
+    res.status(401).send({ success: false, message: err.message });
+  }
+};
+module.exports = {
+  registerUser,
+  loginUser,
+  viewProfile,
+  bookAppointment,
+  updateUserProfile,
+};
