@@ -1,9 +1,13 @@
-const validateAddDoctorDetails = require("../utils/validation");
+const {
+  validateAddDoctorDetails,
+  validateMedicineDetails,
+} = require("../utils/validation");
 const bcrypt = require("bcrypt");
 const cloudinary = require("cloudinary");
 const jwt = require("jsonwebtoken");
 const Doctor = require("../models/doctorModel");
 const validator = require("validator");
+const Medicine = require("../models/medicineModel");
 // API For Adding Doctor
 const addDoctor = async (req, res) => {
   try {
@@ -29,7 +33,6 @@ const addDoctor = async (req, res) => {
     if (isAllFieldsPresent.length > 0) {
       return res.json({ success: false, message: "Missing Details" });
     }
-    console.log(isAllFieldsPresent);
     if (!validator.isEmail(email)) {
       return res.json({
         success: false,
@@ -48,7 +51,6 @@ const addDoctor = async (req, res) => {
       resource_type: "image",
     });
     const imageUrl = imageUpload.secure_url;
-    console.log(imageUrl);
     const finalDoctorDataForAddingDoctor = {
       name,
       email,
@@ -67,9 +69,62 @@ const addDoctor = async (req, res) => {
     res.json({
       success: true,
       message: "Doctor added successfully",
+      imageUrl,
     });
   } catch (err) {
     res.status(400).send("ERROR : " + err.message);
+  }
+};
+// Add Medicine
+const addMedicine = async (req, res) => {
+  try {
+    const {
+      name,
+      noOfTablets,
+      description,
+      price,
+      category,
+      stock,
+      manufacturer,
+      expiryDate,
+      prescriptionRequired,
+      dosage,
+      form,
+    } = req.body;
+    const isAllFieldsPresent = validateMedicineDetails(req);
+    if (isAllFieldsPresent.length > 0) {
+      return res.json({ success: false, message: "Missing Details" });
+    }
+    const imageFile = req.file;
+    if (!imageFile) throw new Error("Missing Image");
+    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+      resource_type: "image",
+    });
+    const imageUrl = imageUpload.secure_url;
+    const finalMedicineData = {
+      name,
+      description,
+      price,
+      category,
+      stock,
+      noOfTablets,
+      image: imageUrl,
+      manufacturer,
+      expiryDate,
+      prescriptionRequired,
+      dosage,
+      form,
+    };
+    const newMedicine = new Medicine(finalMedicineData);
+    await newMedicine.save();
+    res.json({
+      success: true,
+      message: "Medicine added successfully",
+      imageUrl,
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 // API For Admin Login
@@ -101,4 +156,4 @@ const allDoctors = async (req, res) => {
     res.status(400).send({ success: false, message: err.message });
   }
 };
-module.exports = { addDoctor, loginAdmin, allDoctors };
+module.exports = { addDoctor, addMedicine, loginAdmin, allDoctors };

@@ -15,7 +15,7 @@ const validateAddDoctorDetails = (req) => {
     slots_booked,
   } = req.body;
 
-  const requredFields = {
+  const requiredFields = {
     name,
     email,
     password,
@@ -30,9 +30,56 @@ const validateAddDoctorDetails = (req) => {
   // slots_booked,
   // available,
   // image,
-  const missingFields = Object.entries(requredFields).filter(
+  const missingFields = Object.entries(requiredFields).filter(
     ([key, value]) => !value
   );
   return missingFields;
 };
-module.exports = validateAddDoctorDetails;
+const validateMedicineDetails = (req) => {
+  const {
+    name,
+    description,
+    noOfTablets,
+    price,
+    category,
+    stock,
+    manufacturer,
+    expiryDate,
+    prescriptionRequired,
+    dosage,
+    form,
+  } = req.body;
+  const requiredFields = {
+    name,
+    description,
+    noOfTablets,
+    price,
+    category,
+    stock,
+
+    manufacturer,
+    expiryDate,
+    prescriptionRequired,
+    dosage,
+    form,
+  };
+  // console.log({
+  //   name,
+  //   description,
+  //   noOfTablets,
+  //   price,
+  //   category,
+  //   stock,
+  //   image,
+  //   manufacturer,
+  //   expiryDate,
+  //   prescriptionRequired,
+  //   dosage,
+  //   form,
+  // });
+  const missingFields = Object.entries(requiredFields).filter(
+    ([key, value]) => !value
+  );
+  return missingFields;
+};
+module.exports = { validateAddDoctorDetails, validateMedicineDetails };
