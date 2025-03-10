@@ -17,10 +17,12 @@ require("dotenv").config();
 const adminRouter = require("./src/routes/adminRoute");
 const userRouter = require("./src/routes/userRoute");
 const doctorRouter = require("./src/routes/doctorRoute");
+const cartRouter = require("./src/routes/cartRoute");
 // API EndPoints
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor/", doctorRouter);
 app.use("/api/user/", userRouter);
+app.use("/api/user/cart/", cartRouter);
 // localhost:1234/api/admin/add-doctor
 app.get("/", (req, res) => {
   res.send("API Working");
