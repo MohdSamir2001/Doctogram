@@ -147,6 +147,11 @@ const loginAdmin = async (req, res) => {
     res.status(400).send("ERROR : " + err.message);
   }
 };
+// API For Logout Admin
+const logoutAdmin = (req, res) => {
+  res.clearCookie("adminToken");
+  res.json({ success: true, message: "Logged out successfully" });
+};
 // API to get all doctors list for admin panel
 const allDoctors = async (req, res) => {
   try {
@@ -156,4 +161,10 @@ const allDoctors = async (req, res) => {
     res.status(400).send({ success: false, message: err.message });
   }
 };
-module.exports = { addDoctor, addMedicine, loginAdmin, allDoctors };
+module.exports = {
+  addDoctor,
+  addMedicine,
+  logoutAdmin,
+  loginAdmin,
+  allDoctors,
+};

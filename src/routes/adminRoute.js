@@ -4,12 +4,14 @@ const {
   loginAdmin,
   allDoctors,
   addMedicine,
+  logoutAdmin,
 } = require("../controllers/adminController");
 const upload = require("../middlewares/multer");
 const authAdmin = require("../middlewares/authAdmin");
 
 const adminRouter = express.Router();
 adminRouter.post("/login", loginAdmin);
+adminRouter.post("/logout", logoutAdmin);
 adminRouter.post("/add-doctor", authAdmin, upload.single("image"), addDoctor);
 adminRouter.post(
   "/add-medicine",
