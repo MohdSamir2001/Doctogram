@@ -8,12 +8,18 @@ const app = express();
 const port = process.env.PORT || 1234;
 // Middlewares
 // Middleware to parse JSON and form data
+app.use(
+  cors({
+    origin: "http://localhost:1111", // Frontend ka origin
+    credentials: true, // Cookies allow karne ke liye
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+
 app.use(cookieParser());
 require("dotenv").config();
-
 const adminRouter = require("./src/routes/adminRoute");
 const userRouter = require("./src/routes/userRoute");
 const doctorRouter = require("./src/routes/doctorRoute");

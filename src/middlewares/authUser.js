@@ -15,6 +15,7 @@ const authUser = async (req, res, next) => {
         .send({ success: false, message: "User not found" });
     }
     req.body.userId = id;
+    console.log(id);
     next();
   } catch (err) {
     res.status(401).send({ status: false, message: err.message });

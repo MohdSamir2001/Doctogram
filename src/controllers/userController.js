@@ -62,7 +62,8 @@ const loginUser = async (req, res) => {
 };
 const viewProfile = async (req, res) => {
   try {
-    const { userData } = req.body;
+    const { userId } = req.body;
+    const userData = await User.findById(userId).select("-password -email");
     return res.json({ success: true, data: userData });
   } catch (err) {
     res.status(401).send("ERROR : " + err.message);
