@@ -75,12 +75,43 @@ const addDoctor = async (req, res) => {
     res.status(400).send("ERROR : " + err.message);
   }
 };
+// API For Deleting Doctor
+const deleteDoctor = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    if (!doctorId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Doctor ID is required" });
+    }
+
+    // Find doctor by ID
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor not found" });
+    }
+
+    // Delete image from Cloudinary
+    const imagePublicId = doctor.image.split("/").pop().split(".")[0];
+    await cloudinary.uploader.destroy(imagePublicId);
+
+    // Delete doctor from database
+    await Doctor.findByIdAndDelete(doctorId);
+
+    res.json({ success: true, message: "Doctor deleted successfully" });
+  } catch (err) {
+    res.status(400).json({ success: false, message: "ERROR: " + err.message });
+  }
+};
 // Add Medicine
 const addMedicine = async (req, res) => {
   try {
     const {
       name,
       noOfTablets,
+      includeSalts,
       description,
       price,
       category,
@@ -105,6 +136,7 @@ const addMedicine = async (req, res) => {
       name,
       description,
       price,
+      includeSalts,
       category,
       stock,
       noOfTablets,
@@ -115,6 +147,7 @@ const addMedicine = async (req, res) => {
       dosage,
       form,
     };
+
     const newMedicine = new Medicine(finalMedicineData);
     await newMedicine.save();
     res.json({
@@ -125,6 +158,48 @@ const addMedicine = async (req, res) => {
   } catch (err) {
     console.error("Error:", err);
     res.status(400).json({ success: false, error: err.message });
+  }
+};
+const deleteMedicine = async (req, res) => {
+  try {
+    const { medicineId } = req.params;
+    console.log(medicineId);
+    if (!medicineId)
+      return res
+        .status(400)
+        .json({ success: false, message: "Medicine ID is required" });
+
+    const medicine = await Medicine.findById(medicineId);
+    if (!medicine)
+      return res
+        .status(404)
+        .json({ success: false, message: "Medicine not found" });
+
+    // Delete image from Cloudinary if exists
+    if (medicine.image) {
+      const imagePublicId = medicine.image.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(imagePublicId);
+    }
+
+    await Medicine.findByIdAndDelete(medicineId);
+    res.json({ success: true, message: "Medicine deleted successfully" });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// Get All Medicines
+const getAllMedicines = async (req, res) => {
+  try {
+    const medicines = await Medicine.find();
+    if (!medicines || medicines.length === 0) {
+      return res.json({ success: false, message: "No medicines found" });
+    }
+    res.json({ success: true, medicines });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 // API For Admin Login
@@ -138,7 +213,7 @@ const loginAdmin = async (req, res) => {
     const token = await jwt.sign(email, process.env.JWT_SECRET);
     // token saved in the cookie of browser
     res.cookie("adminToken", token);
-    res.json({ success: true, message: "Logged in successfully" });
+    res.json({ success: true, message: "Logged in successfully", token });
   } else {
     res.status(401).json({ success: false, message: "Invalid credentials" });
   }
@@ -150,7 +225,7 @@ const loginAdmin = async (req, res) => {
 // API For Logout Admin
 const logoutAdmin = (req, res) => {
   res.clearCookie("adminToken");
-  res.json({ success: true, message: "Logged out successfully" });
+  res.json({ success: true, message: "Logged out successfully", token: "" });
 };
 // API to get all doctors list for admin panel
 const allDoctors = async (req, res) => {
@@ -166,5 +241,8 @@ module.exports = {
   addMedicine,
   logoutAdmin,
   loginAdmin,
+  getAllMedicines,
   allDoctors,
+  deleteDoctor,
+  deleteMedicine,
 };

@@ -6,7 +6,7 @@ const changeAvailablity = async (req, res) => {
     const oneDoctor = await Doctor.findById(doctorId);
     // Change his availability
     await Doctor.findByIdAndUpdate(doctorId, {
-      available: !oneDoctor.available,
+      avaliable: !oneDoctor.avaliable,
     });
     res.json({ success: true, message: "Availablity changed successfully" });
   } catch (err) {

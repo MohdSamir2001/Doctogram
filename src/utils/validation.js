@@ -38,6 +38,7 @@ const validateAddDoctorDetails = (req) => {
 const validateMedicineDetails = (req) => {
   const {
     name,
+    includeSalts,
     description,
     noOfTablets,
     price,
@@ -56,7 +57,7 @@ const validateMedicineDetails = (req) => {
     price,
     category,
     stock,
-
+    includeSalts,
     manufacturer,
     expiryDate,
     prescriptionRequired,
@@ -77,6 +78,7 @@ const validateMedicineDetails = (req) => {
   //   dosage,
   //   form,
   // });
+  console.log(requiredFields);
   const missingFields = Object.entries(requiredFields).filter(
     ([key, value]) => !value
   );
