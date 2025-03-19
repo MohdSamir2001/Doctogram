@@ -4,6 +4,7 @@ const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const Doctor = require("../models/doctorModel");
 const Appointment = require("../models/appointmentModel");
+const Medicine = require("../models/medicineModel");
 const cloudinary = require("cloudinary").v2;
 // API to register user
 const registerUser = async (req, res) => {
@@ -147,10 +148,23 @@ const bookAppointment = async (req, res) => {
     res.status(401).send({ success: false, message: err.message });
   }
 };
+const getAllMedicines = async (req, res) => {
+  try {
+    const medicines = await Medicine.find();
+    if (!medicines || medicines.length === 0) {
+      return res.json({ success: false, message: "No medicines found" });
+    }
+    res.json({ success: true, medicines });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
 module.exports = {
   registerUser,
   loginUser,
   viewProfile,
   bookAppointment,
   updateUserProfile,
+  getAllMedicines,
 };

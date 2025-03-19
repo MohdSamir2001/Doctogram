@@ -7,7 +7,7 @@ const medicineSchema = new mongoose.Schema(
     noOfTablets: { type: Number },
     price: { type: Number, required: true },
     category: { type: String }, // Example: "Pain Relief", "Antibiotics", "Vitamins"
-    stock: { type: Number, default: 1 }, // Track available stock
+    stock: { type: Boolean, default: false }, // Track available stock
     image: { type: String }, // Image URL (Cloudinary/Firebase)
     manufacturer: { type: String }, // Company producing the medicine
     expiryDate: { type: String }, // Expiry date for safety

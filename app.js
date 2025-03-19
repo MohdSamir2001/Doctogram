@@ -10,8 +10,8 @@ const port = process.env.PORT || 1234;
 // Middleware to parse JSON and form data
 app.use(
   cors({
-    origin: "http://localhost:1111", // Frontend ka origin
-    credentials: true, // Cookies allow karne ke liye
+    origin: ["http://localhost:1111", "http://localhost:2222"], // Frontend origins
+    credentials: true, // Allows cookies
   })
 );
 

@@ -8,6 +8,7 @@ const {
   getAllMedicines,
   deleteDoctor,
   deleteMedicine,
+  toggleMedicineStock,
 } = require("../controllers/adminController");
 const upload = require("../middlewares/multer");
 const authAdmin = require("../middlewares/authAdmin");
@@ -35,5 +36,6 @@ adminRouter.post(
   addMedicine
 );
 adminRouter.get("/all-medicines", authAdmin, getAllMedicines);
+adminRouter.post("/update-stock/:medicineId", authAdmin, toggleMedicineStock);
 adminRouter.get("/all-doctors", authAdmin, allDoctors);
 module.exports = adminRouter;

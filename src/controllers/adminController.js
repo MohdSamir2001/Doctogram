@@ -188,7 +188,26 @@ const deleteMedicine = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
-
+const toggleMedicineStock = async (req, res) => {
+  try {
+    const { medicineId } = req.params;
+    console.log(medicineId);
+    // Find the medicine in the database
+    const medicine = await Medicine.findById(medicineId);
+    if (!medicine) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Medicine not found" });
+    }
+    // Toggle the stock status
+    await Medicine.findByIdAndUpdate(medicineId, {
+      stock: !medicine.stock,
+    });
+    res.json({ success: true, message: "Stock status toggled successfully" });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
 // Get All Medicines
 const getAllMedicines = async (req, res) => {
   try {
@@ -245,4 +264,5 @@ module.exports = {
   allDoctors,
   deleteDoctor,
   deleteMedicine,
+  toggleMedicineStock,
 };
