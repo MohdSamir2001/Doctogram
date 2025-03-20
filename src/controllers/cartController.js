@@ -1,4 +1,5 @@
 const Cart = require("../models/cartModel");
+const Order = require("../models/orderModel");
 const addToCart = async (req, res) => {
   try {
     const { userId, quantity, productId } = req.body;
@@ -65,7 +66,6 @@ const updateCartQuantity = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-const mongoose = require("mongoose");
 
 const removeFromCart = async (req, res) => {
   try {
@@ -86,6 +86,39 @@ const removeFromCart = async (req, res) => {
     n;
   }
 };
+const placeOrder = async (req, res) => {
+  try {
+    const { userId, medicines } = req.body; // medicines: [{ medicineId, quantity }]
+
+    // Reduce stock in bulk
+    await Promise.all(
+      medicines.map(async (item) => {
+        const medicine = await Medicine.findById(item.medicineId);
+        if (medicine) {
+          if (medicine.quantityInStore < item.quantity) {
+            throw new Error(`Not enough stock for ${medicine.name}`);
+          }
+          medicine.quantityInStore -= item.quantity;
+          medicine.stock = medicine.quantityInStore > 0;
+          await medicine.save();
+        }
+      })
+    );
+
+    // Create the order
+    const order = new Order({
+      user: userId,
+      medicines,
+      totalPrice: calculateTotalPrice(medicines), // Assume you have this function
+    });
+
+    await order.save();
+
+    res.status(201).json({ message: "Order placed successfully", order });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 
 // Clear cart after checkout
 const clearCart = async (req, res) => {
@@ -98,11 +131,59 @@ const clearCart = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+const createOrder = async (req, res) => {
+  try {
+    const { userId } = req.body; // Assuming authentication middleware
+    const cartItems = await Cart.find({ userId }).populate("productId");
 
+    if (!cartItems.length) {
+      return res.status(400).json({ message: "Cart is empty!" });
+    }
+
+    const totalPrice = cartItems.reduce(
+      (total, item) => total + item.productId.price * item.quantity,
+      0
+    );
+
+    const newOrder = new Order({
+      user: userId,
+      medicines: cartItems.map((item) => ({
+        medicineId: item.productId._id,
+        quantity: item.quantity,
+      })),
+      totalPrice,
+    });
+
+    await newOrder.save();
+    await Cart.deleteMany({ userId }); // Clear cart after placing order
+
+    res
+      .status(201)
+      .json({ message: "Order placed successfully!", order: newOrder });
+  } catch (error) {
+    res.status(500).json({ message: "Error placing order", error });
+  }
+};
+const getOrders = async (req, res) => {
+  try {
+    const { userId } = req.body; // Ensure req.user.id is set via auth middleware
+    const orders = await Order.find({ user: userId }).populate(
+      "medicines.medicineId"
+    );
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    res.status(500).json({ message: "Failed to fetch orders" });
+  }
+};
 module.exports = {
   addToCart,
   removeFromCart,
+  getOrders,
   clearCart,
   getCart,
+  createOrder,
+  placeOrder,
   updateCartQuantity,
 };

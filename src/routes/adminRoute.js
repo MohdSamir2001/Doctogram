@@ -9,6 +9,9 @@ const {
   deleteDoctor,
   deleteMedicine,
   toggleMedicineStock,
+  allOrders,
+  updateOrderStatus,
+  deleteOrder,
 } = require("../controllers/adminController");
 const upload = require("../middlewares/multer");
 const authAdmin = require("../middlewares/authAdmin");
@@ -26,6 +29,7 @@ adminRouter.post(
 );
 adminRouter.get("/all-medicines", authAdmin, getAllMedicines);
 adminRouter.get("/all-doctors", authAdmin, allDoctors);
+adminRouter.get("/all-orders", authAdmin, allOrders);
 module.exports = adminRouter;
 adminRouter.delete("/delete-doctor/:doctorId", authAdmin, deleteDoctor);
 adminRouter.delete("/delete-medicine/:medicineId", authAdmin, deleteMedicine);
@@ -37,5 +41,7 @@ adminRouter.post(
 );
 adminRouter.get("/all-medicines", authAdmin, getAllMedicines);
 adminRouter.post("/update-stock/:medicineId", authAdmin, toggleMedicineStock);
+adminRouter.put("/orders/update/:id", authAdmin, updateOrderStatus);
+adminRouter.delete("/orders/delete/:id", authAdmin, deleteOrder);
 adminRouter.get("/all-doctors", authAdmin, allDoctors);
 module.exports = adminRouter;

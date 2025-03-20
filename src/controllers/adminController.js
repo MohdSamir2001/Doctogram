@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const Doctor = require("../models/doctorModel");
 const validator = require("validator");
 const Medicine = require("../models/medicineModel");
+const Order = require("../models/orderModel");
 // API For Adding Doctor
 const addDoctor = async (req, res) => {
   try {
@@ -255,9 +256,40 @@ const allDoctors = async (req, res) => {
     res.status(400).send({ success: false, message: err.message });
   }
 };
+const allOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().populate("medicines.medicineId user");
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch orders" });
+  }
+};
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    res.status(200).json(order);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update order status" });
+  }
+};
+const deleteOrder = async (req, res) => {
+  try {
+    await Order.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete order" });
+  }
+};
 module.exports = {
   addDoctor,
   addMedicine,
+  deleteOrder,
+  updateOrderStatus,
   logoutAdmin,
   loginAdmin,
   getAllMedicines,
@@ -265,4 +297,5 @@ module.exports = {
   deleteDoctor,
   deleteMedicine,
   toggleMedicineStock,
+  allOrders,
 };

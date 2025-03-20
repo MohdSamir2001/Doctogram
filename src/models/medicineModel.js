@@ -3,6 +3,7 @@ const medicineSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     description: { type: String },
+    quantityInStore: { type: Number, default: 20 },
     includeSalts: { type: String },
     noOfTablets: { type: Number },
     price: { type: Number, required: true },
@@ -26,6 +27,10 @@ const medicineSchema = new mongoose.Schema(
   },
   { timestamps: true }
 ); // Adds createdAt & updatedAt timestamps
+medicineSchema.pre("save", function (next) {
+  this.stock = this.quantityInStore > 0;
+  next();
+});
 const Medicine =
   mongoose.models.Medicine || mongoose.model("Medicine", medicineSchema);
 module.exports = Medicine;
