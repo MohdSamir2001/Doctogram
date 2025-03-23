@@ -4,25 +4,50 @@ const Order = require("../models/orderModel");
 const addToCart = async (req, res) => {
   try {
     const { userId, quantity, productId } = req.body;
-    console.log(userId, quantity, productId);
+
+    // Find the medicine in the database
+    const medicine = await Medicine.findById(productId);
+    if (!medicine) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Medicine not found" });
+    }
+
+    // Check stock availability
+    if (medicine.quantityInStore < quantity) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Not enough stock available" });
+    }
 
     // Check if the item is already in the cart
     const cartItem = await Cart.findOne({ userId, productId });
-
     if (cartItem) {
       return res
         .status(400)
         .json({ success: false, message: "Item already in cart" });
     }
 
-    // If item is not in the cart, add it
+    // Reduce stock in the database
+    medicine.quantityInStore -= quantity;
+    await medicine.save();
+
+    // Add item to cart
     const newCartItem = new Cart({ userId, productId, quantity });
     await newCartItem.save();
+
+    // Check if stock is low (threshold: 3)
+    let warningMessage = "";
+    if (medicine.quantityInStore <= 3) {
+      warningMessage =
+        "Stock is running low, we will notify you when available.";
+    }
 
     res.status(200).json({
       success: true,
       message: "Item added to cart",
       cartItem: newCartItem,
+      warning: warningMessage,
     });
   } catch (err) {
     res.status(400).json({ success: false, message: "ERROR: " + err.message });
@@ -37,32 +62,6 @@ const getCart = async (req, res) => {
       "name price includeSalts image manufacturer"
     );
     res.status(200).json(cartItems);
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-const updateCartQuantity = async (req, res) => {
-  try {
-    const { userId, productId, change } = req.body; // change: +1 for increase, -1 for decrease
-
-    let cartItem = await Cart.findOne({ userId: userId, productId: productId });
-
-    if (!cartItem && change > 0) {
-      // If item doesn't exist and user is increasing quantity, add it to cart
-      cartItem = new Cart({ userId, productId, quantity: 1 });
-    } else if (!cartItem) {
-      return res.status(404).json({ error: "Item not found" });
-    } else {
-      // If item exists, update quantity
-      cartItem.quantity += change;
-      // If quantity becomes 0 or less, remove item
-      if (cartItem.quantity <= 0) {
-        await Cart.findByIdAndDelete(cartItem._id);
-        return res.status(200).json({ message: "Item removed from cart" });
-      }
-    }
-    await cartItem.save();
-    res.status(200).json({ message: "Cart updated", cartItem });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
@@ -90,7 +89,11 @@ const removeFromCart = async (req, res) => {
 // Clear cart after checkout
 const clearCart = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.body; // ✅ Fetch userId from req.user
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
 
     await Cart.deleteMany({ userId });
     res.status(200).json({ message: "Cart cleared after checkout" });
@@ -98,6 +101,7 @@ const clearCart = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 const createOrder = async (req, res) => {
   try {
     const { userId, medicines, totalPrice } = req.body;
@@ -157,13 +161,70 @@ const getOrders = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch orders" });
   }
 };
+const updateCart = async (req, res) => {
+  try {
+    const { cartId, action } = req.body;
+
+    // Find cart item and populate product details
+    const cartItem = await Cart.findById(cartId).populate("productId");
+    if (!cartItem) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Cart item not found" });
+    }
+
+    const product = cartItem.productId;
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    if (action === "increase") {
+      if (product.quantityInStore <= 0) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Stock unavailable!" });
+      }
+      cartItem.quantity += 1;
+      product.quantityInStore -= 1;
+    } else if (action === "decrease") {
+      if (cartItem.quantity > 1) {
+        cartItem.quantity -= 1;
+        product.quantityInStore += 1;
+      } else {
+        return res
+          .status(400)
+          .json({ success: false, message: "Minimum quantity reached!" });
+      }
+    }
+
+    // First save the product, then the cart item
+    await product.save();
+    await cartItem.save();
+
+    let warning = "";
+    if (product.quantityInStore <= 3) {
+      warning = `⚠ Low stock! Only ${product.quantityInStore} left.`;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Cart updated successfully",
+      cartItem,
+      warning,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "ERROR: " + err.message });
+  }
+};
 
 module.exports = {
   addToCart,
+  updateCart,
   removeFromCart,
   getOrders,
   clearCart,
   getCart,
   createOrder,
-  updateCartQuantity,
 };
