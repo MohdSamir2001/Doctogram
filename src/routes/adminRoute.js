@@ -12,6 +12,7 @@ const {
   allOrders,
   updateOrderStatus,
   deleteOrder,
+  updateMedicineStock,
 } = require("../controllers/adminController");
 const upload = require("../middlewares/multer");
 const authAdmin = require("../middlewares/authAdmin");
@@ -27,6 +28,8 @@ adminRouter.post(
   upload.single("image"),
   addMedicine
 );
+adminRouter.put("/update-medicine-stock/:id", authAdmin, updateMedicineStock);
+
 adminRouter.get("/all-medicines", authAdmin, getAllMedicines);
 adminRouter.get("/all-doctors", authAdmin, allDoctors);
 adminRouter.get("/all-orders", authAdmin, allOrders);

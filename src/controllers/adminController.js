@@ -285,11 +285,42 @@ const deleteOrder = async (req, res) => {
     res.status(500).json({ message: "Failed to delete order" });
   }
 };
+const updateMedicineStock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { quantityInStore } = req.body;
+
+    // Validate quantity
+    if (quantityInStore < 10) {
+      return res.status(400).json({ message: "Quantity cannot be negative." });
+    }
+
+    // Find and update medicine
+    const updatedMedicine = await Medicine.findByIdAndUpdate(
+      id,
+      { quantityInStore },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedMedicine) {
+      return res.status(404).json({ message: "Medicine not found." });
+    }
+
+    res.status(200).json({
+      message: "Stock quantity updated successfully!",
+      medicine: updatedMedicine,
+    });
+  } catch (error) {
+    console.error("Error updating stock quantity:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 module.exports = {
   addDoctor,
   addMedicine,
   deleteOrder,
   updateOrderStatus,
+  updateMedicineStock,
   logoutAdmin,
   loginAdmin,
   getAllMedicines,

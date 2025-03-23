@@ -61,6 +61,16 @@ const loginUser = async (req, res) => {
     res.status(400).send("ERROR : " + err.message);
   }
 };
+const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("userToken"); // Clears the authentication cookie
+    res.json({ success: true, message: "Logged Out Successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, message: "Logout Failed", error: err.message });
+  }
+};
 const viewProfile = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -167,4 +177,5 @@ module.exports = {
   bookAppointment,
   updateUserProfile,
   getAllMedicines,
+  logoutUser,
 };
