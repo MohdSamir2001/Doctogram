@@ -118,10 +118,8 @@ const updateUserProfile = async (req, res) => {
 };
 const bookAppointment = async (req, res) => {
   try {
-    const { userId, doctorId, slotDate, slotTime } = req.body;
-    const doctorData = await Doctor.findById(doctorId)
-      .select("-password")
-      .lean();
+    const { userId, docId, slotDate, slotTime } = req.body;
+    const doctorData = await Doctor.findById(docId).select("-password").lean();
     if (!doctorData.avaliable) {
       return res.json({ success: false, message: "Doctor not available" });
     }
@@ -141,7 +139,7 @@ const bookAppointment = async (req, res) => {
     delete doctorData.slots_booked;
     const appointmentData = {
       userId,
-      doctorId,
+      docId,
       userData,
       doctorData,
       amount: doctorData.fees,
@@ -152,7 +150,7 @@ const bookAppointment = async (req, res) => {
     const newAppointment = new Appointment(appointmentData);
     await newAppointment.save();
     // Save new slots data in doctorData
-    await Doctor.findByIdAndUpdate(doctorId, { slots_booked });
+    await Doctor.findByIdAndUpdate(docId, { slots_booked });
     res.json({ success: true, message: "Appointment Booked Successfully" });
   } catch (err) {
     res.status(401).send({ success: false, message: err.message });
@@ -170,9 +168,22 @@ const getAllMedicines = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+const getAllDoctors = async (req, res) => {
+  try {
+    const doctors = await Doctor.find();
+    if (!doctors || doctors.length === 0) {
+      return res.json({ success: false, message: "No doctors found" });
+    }
+    res.json({ success: true, doctors });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
 module.exports = {
   registerUser,
   loginUser,
+  getAllDoctors,
   viewProfile,
   bookAppointment,
   updateUserProfile,

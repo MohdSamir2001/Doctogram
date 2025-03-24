@@ -69,11 +69,13 @@ const getCart = async (req, res) => {
 
 const removeFromCart = async (req, res) => {
   try {
-    const { productId } = req.body;
-    console.log(productId);
+    const { cartId } = req.body; // Expecting cartId from frontend
 
-    // Ensure productId is treated as a string (since it's stored as a string in DB)
-    const deletedItem = await Cart.findOneAndDelete({ productId: productId });
+    if (!cartId) {
+      return res.status(400).json({ message: "cartId is required" });
+    }
+
+    const deletedItem = await Cart.findByIdAndDelete(cartId);
 
     if (!deletedItem) {
       return res.status(404).json({ message: "Item not found in cart" });
@@ -83,9 +85,9 @@ const removeFromCart = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
-    n;
   }
 };
+
 // Clear cart after checkout
 const clearCart = async (req, res) => {
   try {

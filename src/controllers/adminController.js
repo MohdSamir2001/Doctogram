@@ -21,7 +21,6 @@ const checkLogin = (req, res) => {
     return res.status(401).json({ message: "Not logged in" });
   }
 };
-
 // API For Adding Doctor
 const addDoctor = async (req, res) => {
   try {

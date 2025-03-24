@@ -21,5 +21,29 @@ const doctorList = async (req, res) => {
     res.status(401).send({ success: false, message: err.message });
   }
 };
+const getDoctorById = async (req, res) => {
+  try {
+    const { docId } = req.params;
 
-module.exports = { doctorList, changeAvailablity };
+    // Check if docId is valid
+    if (!docId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Doctor ID is required" });
+    }
+
+    const doctor = await Doctor.findById(docId).select("-password"); // Exclude password field
+
+    if (!doctor) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor not found" });
+    }
+
+    res.json({ success: true, doctor });
+  } catch (err) {
+    console.error("Error fetching doctor:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+module.exports = { doctorList, getDoctorById, changeAvailablity };
