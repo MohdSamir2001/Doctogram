@@ -180,9 +180,56 @@ const getAllDoctors = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+const getUserAppointments = async (req, res) => {
+  try {
+    const { userId } = req.body; // Extracted from authentication middleware
+
+    const appointments = await Appointment.find({ userId }).sort({ date: -1 });
+
+    res.status(200).json({ success: true, appointments });
+  } catch (error) {
+    console.error("Error fetching user appointments:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+const cancelAppointment = async (req, res) => {
+  try {
+    const { appointmentId, userId } = req.body;
+
+    const appointment = await Appointment.findOne({
+      _id: appointmentId,
+      userId,
+    });
+
+    if (!appointment) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Appointment not found." });
+    }
+
+    if (appointment.isCompleted) {
+      return res.status(400).json({
+        success: false,
+        message: "Completed appointments cannot be cancelled.",
+      });
+    }
+
+    appointment.cancelled = true;
+    await appointment.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Appointment cancelled successfully." });
+  } catch (error) {
+    console.error("Error cancelling appointment:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 module.exports = {
   registerUser,
   loginUser,
+  getUserAppointments,
+  cancelAppointment,
   getAllDoctors,
   viewProfile,
   bookAppointment,

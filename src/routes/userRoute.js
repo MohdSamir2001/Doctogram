@@ -7,6 +7,8 @@ const {
   bookAppointment,
   logoutUser,
   getAllDoctors,
+  cancelAppointment,
+  getUserAppointments,
 } = require("../controllers/userController");
 const authUser = require("../middlewares/authUser");
 const upload = require("../middlewares/multer");
@@ -15,7 +17,9 @@ const userRouter = express.Router();
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
 userRouter.post("/logout", logoutUser);
+userRouter.post("/cancel-appointment", authUser, cancelAppointment);
 userRouter.get("/profile", authUser, viewProfile);
+userRouter.get("/appointments", authUser, getUserAppointments);
 userRouter.get("/all-medicines", getAllMedicines);
 userRouter.get("/all-doctors", getAllDoctors);
 userRouter.patch("/edit", upload.single("image"), authUser, updateUserProfile);
