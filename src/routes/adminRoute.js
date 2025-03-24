@@ -13,13 +13,20 @@ const {
   updateOrderStatus,
   deleteOrder,
   updateMedicineStock,
+  loginDoctor,
+
+  getAdmin,
+  checkLogin,
+  getDoctor,
 } = require("../controllers/adminController");
 const upload = require("../middlewares/multer");
 const authAdmin = require("../middlewares/authAdmin");
 
 const adminRouter = express.Router();
 adminRouter.post("/login", loginAdmin);
+adminRouter.post("/doctor-login", loginDoctor);
 adminRouter.post("/logout", logoutAdmin);
+
 adminRouter.post("/add-doctor", authAdmin, upload.single("image"), addDoctor);
 adminRouter.delete("/delete-doctor/:doctorId", authAdmin, deleteDoctor);
 adminRouter.post(
@@ -43,6 +50,9 @@ adminRouter.post(
   addMedicine
 );
 adminRouter.get("/all-medicines", authAdmin, getAllMedicines);
+adminRouter.get("/get-admin", authAdmin, getAdmin);
+adminRouter.get("/get-doctor", authAdmin, getDoctor);
+adminRouter.get("/check-login", authAdmin, checkLogin);
 adminRouter.post("/update-stock/:medicineId", authAdmin, toggleMedicineStock);
 adminRouter.put("/orders/update/:id", authAdmin, updateOrderStatus);
 adminRouter.delete("/orders/delete/:id", authAdmin, deleteOrder);

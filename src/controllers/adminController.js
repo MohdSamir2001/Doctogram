@@ -9,6 +9,19 @@ const Doctor = require("../models/doctorModel");
 const validator = require("validator");
 const Medicine = require("../models/medicineModel");
 const Order = require("../models/orderModel");
+const checkLogin = (req, res) => {
+  const adminToken = req.cookies.adminToken;
+  const doctorToken = req.cookies.doctorToken;
+
+  if (adminToken) {
+    return res.json({ role: "admin" });
+  } else if (doctorToken) {
+    return res.json({ role: "doctor" });
+  } else {
+    return res.status(401).json({ message: "Not logged in" });
+  }
+};
+
 // API For Adding Doctor
 const addDoctor = async (req, res) => {
   try {
@@ -222,7 +235,7 @@ const getAllMedicines = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
-// API For Admin Login
+
 const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
   console.log(email);
@@ -231,7 +244,11 @@ const loginAdmin = async (req, res) => {
     password === process.env.ADMIN_PASSWORD
   ) {
     const token = await jwt.sign(email, process.env.JWT_SECRET);
-    // token saved in the cookie of browser
+
+    // Delete doctorToken if exists
+    res.clearCookie("doctorToken");
+
+    // Set adminToken
     res.cookie("adminToken", token);
     res.json({ success: true, message: "Logged in successfully", token });
   } else {
@@ -242,9 +259,74 @@ const loginAdmin = async (req, res) => {
     res.status(400).send("ERROR : " + err.message);
   }
 };
+
+const loginDoctor = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find doctor in DB
+    const doctor = await Doctor.findOne({ email });
+    if (!doctor)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid email or password" });
+
+    // Validate password
+    const isMatch = await bcrypt.compare(password, doctor.password);
+    if (!isMatch)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid email or password" });
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: doctor._id, role: "doctor" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // Delete adminToken if exists
+    res.clearCookie("adminToken");
+
+    // Set doctorToken
+    res.cookie("doctorToken", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
+    res
+      .status(200)
+      .json({ success: true, message: "Login successful", doctor, token });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+const getAdmin = async (req, res) => {
+  try {
+    res.status(200).json({ success: true, message: "Admin is logged in" });
+  } catch (error) {
+    res.status(401).json({ success: false, message: "Admin is not logged in" });
+  }
+};
+const getDoctor = async (req, res) => {
+  try {
+    res.status(200).json({ success: true, message: "Doctor is logged in" });
+  } catch (error) {
+    res
+      .status(401)
+      .json({ success: false, message: "Doctor is not logged in" });
+  }
+};
 // API For Logout Admin
-const logoutAdmin = (req, res) => {
+const logoutAdmin = async (req, res) => {
   res.clearCookie("adminToken");
+  res.clearCookie("doctorToken");
   res.json({ success: true, message: "Logged out successfully", token: "" });
 };
 // API to get all doctors list for admin panel
@@ -317,6 +399,8 @@ const updateMedicineStock = async (req, res) => {
 };
 module.exports = {
   addDoctor,
+
+  loginDoctor,
   addMedicine,
   deleteOrder,
   updateOrderStatus,
@@ -329,4 +413,7 @@ module.exports = {
   deleteMedicine,
   toggleMedicineStock,
   allOrders,
+  getAdmin,
+  checkLogin,
+  getDoctor,
 };
