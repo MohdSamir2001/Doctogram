@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const authAdmin = async (req, res, next) => {
   try {
     const { adminToken } = req.cookies;
+    console.log(adminToken);
     if (!adminToken) {
       return res.json({ success: false, message: "Please login as a admin" });
     }

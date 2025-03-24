@@ -18,12 +18,18 @@ const {
   getAdmin,
   checkLogin,
   getDoctor,
+  appointmentsAdmin,
+  appointmentCancel,
+  adminDashboard,
 } = require("../controllers/adminController");
 const upload = require("../middlewares/multer");
 const authAdmin = require("../middlewares/authAdmin");
 
 const adminRouter = express.Router();
 adminRouter.post("/login", loginAdmin);
+adminRouter.get("/appointments", authAdmin, appointmentsAdmin);
+adminRouter.get("/dashboard", authAdmin, adminDashboard);
+adminRouter.post("/cancel-appointment", authAdmin, appointmentCancel);
 adminRouter.post("/doctor-login", loginDoctor);
 adminRouter.post("/logout", logoutAdmin);
 

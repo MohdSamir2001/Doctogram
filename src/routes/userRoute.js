@@ -9,6 +9,8 @@ const {
   getAllDoctors,
   cancelAppointment,
   getUserAppointments,
+  paymentRazorpay,
+  verifyRazorpay,
 } = require("../controllers/userController");
 const authUser = require("../middlewares/authUser");
 const upload = require("../middlewares/multer");
@@ -22,6 +24,8 @@ userRouter.get("/profile", authUser, viewProfile);
 userRouter.get("/appointments", authUser, getUserAppointments);
 userRouter.get("/all-medicines", getAllMedicines);
 userRouter.get("/all-doctors", getAllDoctors);
+userRouter.post("/payment-razorpay", authUser, paymentRazorpay);
+userRouter.post("/verifyRazorpay", authUser, verifyRazorpay);
 userRouter.patch("/edit", upload.single("image"), authUser, updateUserProfile);
 userRouter.post("/book-appointment", authUser, bookAppointment);
 module.exports = userRouter;

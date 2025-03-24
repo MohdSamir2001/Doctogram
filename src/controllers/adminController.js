@@ -9,6 +9,51 @@ const Doctor = require("../models/doctorModel");
 const validator = require("validator");
 const Medicine = require("../models/medicineModel");
 const Order = require("../models/orderModel");
+const Appointment = require("../models/appointmentModel");
+const User = require("../models/userModel");
+// API to get dashboard data for admin panel
+const adminDashboard = async (req, res) => {
+  try {
+    const doctors = await Doctor.find({});
+    const users = await User.find({});
+    const appointments = await Appointment.find({});
+
+    const dashData = {
+      doctors: doctors.length,
+      appointments: appointments.length,
+      patients: users.length,
+      latestAppointments: appointments.reverse(),
+    };
+
+    res.json({ success: true, dashData });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+const appointmentsAdmin = async (req, res) => {
+  try {
+    const appointments = await Appointment.find({});
+    res.json({ success: true, appointments });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+// API for appointment cancellation
+const appointmentCancel = async (req, res) => {
+  try {
+    const { appointmentId } = req.body;
+    await Appointment.findByIdAndUpdate(appointmentId, {
+      cancelled: true,
+    });
+
+    res.json({ success: true, message: "Appointment Cancelled" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
 const checkLogin = (req, res) => {
   const adminToken = req.cookies.adminToken;
   const doctorToken = req.cookies.doctorToken;
@@ -396,6 +441,7 @@ const updateMedicineStock = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 module.exports = {
   addDoctor,
 
@@ -414,5 +460,8 @@ module.exports = {
   allOrders,
   getAdmin,
   checkLogin,
+  appointmentsAdmin,
+  appointmentCancel,
   getDoctor,
+  adminDashboard,
 };
