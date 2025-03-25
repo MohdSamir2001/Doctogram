@@ -26,6 +26,6 @@ userRouter.get("/all-medicines", getAllMedicines);
 userRouter.get("/all-doctors", getAllDoctors);
 userRouter.post("/payment-razorpay", authUser, paymentRazorpay);
 userRouter.post("/verifyRazorpay", authUser, verifyRazorpay);
-userRouter.patch("/edit", upload.single("image"), authUser, updateUserProfile);
+userRouter.post("/edit", upload.single("image"), authUser, updateUserProfile);
 userRouter.post("/book-appointment", authUser, bookAppointment);
 module.exports = userRouter;

@@ -91,7 +91,7 @@ const updateUserProfile = async (req, res) => {
     // userId coming from authUser
     const { userId, name, email, address, gender, dob, phone } = req.body;
     const imageFile = req.file;
-    if (!userId || !name || !email || !address || !gender || !dob || !phone) {
+    if (!userId || !name || !address || !gender || !dob || !phone) {
       return res
         .status(400)
         .json({ success: false, message: "Missing Details" });
